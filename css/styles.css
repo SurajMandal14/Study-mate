@@ -1,0 +1,245 @@
+/* StudyMate CSS - Main Stylesheet */
+
+/* Base styles */
+body {
+  font-family: 'Roboto', Arial, sans-serif;
+  background-color: #f9fafb;
+  color: #1a202c;
+  transition: background 0.3s, color 0.3s;
+}
+
+.darkmode {
+  background-color: #22232a;
+  color: #e5e7eb;
+}
+
+/* Card styles */
+.dark-card {
+  background-color: #2d2e36;
+  color: #e5e7eb;
+}
+
+.card {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.04),0 1.5px 2.5px 0 rgba(0,0,0,0.04);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+/* Form elements */
+.dark-input {
+  background-color: #3a3b46 !important;
+  color: #e5e7eb !important;
+  border-color: #4b4c57 !important;
+}
+
+.dark-border {
+  border-color: #4b4c57 !important;
+}
+
+select, input, textarea {
+  color: #1a202c;
+}
+
+.darkmode select, .darkmode input, .darkmode textarea {
+  color: #e5e7eb;
+}
+
+/* UI Elements */
+.section-title {
+  position: relative;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+}
+
+.section-title:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 50px;
+  height: 3px;
+  background: linear-gradient(90deg, #5EEAD4, #818CF8);
+}
+
+.quote-gradient {
+  background: linear-gradient(90deg, #5EEAD4, #818CF8 60%, #F472B6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Animations */
+.animate-fade {
+  animation: fade-in 0.5s ease-in-out;
+}
+
+@keyframes fade-in {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Utilities */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Topic Knowledge Base styling */
+#topicContent {
+  color: #1a202c;
+}
+
+#topicContent h1, 
+#topicContent h2, 
+#topicContent h3, 
+#topicContent h4, 
+#topicContent h5, 
+#topicContent h6 {
+  color: #1e3a8a;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+#topicContent p {
+  color: #1a202c;
+  margin-bottom: 1rem;
+}
+
+#topicContent ul, 
+#topicContent ol {
+  color: #1a202c;
+  margin-left: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+#topicContent li {
+  margin-bottom: 0.25rem;
+}
+
+#topicContent a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+#topicContent pre {
+  background-color: #f3f4f6;
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+
+#topicContent code {
+  font-family: monospace;
+  background-color: #f3f4f6;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  color: #1e40af;
+}
+
+#topicContent blockquote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 1rem;
+  font-style: italic;
+  margin: 1rem 0;
+  color: #4b5563;
+}
+
+#topicContent table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+#topicContent th, 
+#topicContent td {
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem;
+}
+
+#topicContent strong {
+  color: #111827;
+}
+
+/* Dark mode overrides for Topic Knowledge Base */
+.darkmode #topicContent {
+  color: #e5e7eb;
+}
+
+.darkmode #topicContent h1, 
+.darkmode #topicContent h2, 
+.darkmode #topicContent h3, 
+.darkmode #topicContent h4, 
+.darkmode #topicContent h5, 
+.darkmode #topicContent h6 {
+  color: #93c5fd;
+}
+
+.darkmode #topicContent p,
+.darkmode #topicContent ul,
+.darkmode #topicContent ol,
+.darkmode #topicContent li {
+  color: #e5e7eb;
+}
+
+.darkmode #topicContent a {
+  color: #60a5fa;
+}
+
+.darkmode #topicContent pre {
+  background-color: #374151;
+}
+
+.darkmode #topicContent code {
+  background-color: #374151;
+  color: #93c5fd;
+}
+
+.darkmode #topicContent blockquote {
+  border-color: #4b4c57;
+  color: #d1d5db;
+}
+
+.darkmode #topicContent th, 
+.darkmode #topicContent td {
+  border-color: #4b4c57;
+}
+
+.darkmode #topicContent strong {
+  color: #f9fafb;
+}
+
+/* Mermaid styling for dark mode */
+.darkmode .mermaid .node rect,
+.darkmode .mermaid .node circle,
+.darkmode .mermaid .node ellipse,
+.darkmode .mermaid .node polygon,
+.darkmode .mermaid .node path {
+  fill: #3a3b46 !important;
+  stroke: #8b8b9e !important;
+}
+
+.darkmode .mermaid .label {
+  color: #e5e7eb !important;
+}
+
+.darkmode .mermaid text {
+  fill: #e5e7eb !important;
+}
+
+.darkmode .mermaid .edgeLabel {
+  background-color: #2d2e36 !important;
+  color: #e5e7eb !important;
+} 

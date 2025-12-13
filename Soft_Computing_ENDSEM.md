@@ -19,9 +19,9 @@ Find the weights required to classify the patterns 'I' and 'O' using the Hebb ru
 **Solution:**
 
 **Step 1: Represent the Input Patterns as Vectors**
-We read the 3x3 grids row by row to create 9-dimensional vectors ($x_1$ to $x_9$).
+We read the 3x3 grids row by row to create 9-dimensional vectors (x₁ to x₉).
 
-**Pattern 1 (Class 'I', Target $y_1 = 1$):**
+**Pattern 1 (Class 'I', Target y₁ = 1):**
 Grid:
 
 ```
@@ -30,9 +30,9 @@ Grid:
 + + +  (1, 1, 1)
 ```
 
-Vector $X_1 = [1, 1, 1, -1, 1, -1, 1, 1, 1]$
+Vector X₁ = [1, 1, 1, -1, 1, -1, 1, 1, 1]
 
-**Pattern 2 (Class 'O', Target $y_2 = -1$):**
+**Pattern 2 (Class 'O', Target y₂ = -1):**
 Grid:
 
 ```
@@ -41,39 +41,39 @@ Grid:
 + + +  (1, 1, 1)
 ```
 
-Vector $X_2 = [1, 1, 1, 1, -1, 1, 1, 1, 1]$
+Vector X₂ = [1, 1, 1, 1, -1, 1, 1, 1, 1]
 
 **Step 2: Initialize Weights and Bias**
-Assume initial weights $W = [0, 0, 0, 0, 0, 0, 0, 0, 0]$ and Bias $b = 0$.
+Assume initial weights W = [0, 0, 0, 0, 0, 0, 0, 0, 0] and Bias b = 0.
 
 **Step 3: Apply Hebb Rule**
-Formula: $W_{new} = W_{old} + X \cdot y$
-Formula: $b_{new} = b_{old} + y$
+Formula: W_new = W_old + X · y
+Formula: b_new = b_old + y
 
 **Update for Pattern 1 ('I'):**
-$W_1 = W_0 + X_1 \cdot (1) = X_1$
-$W_1 = [1, 1, 1, -1, 1, -1, 1, 1, 1]$
-$b_1 = 0 + 1 = 1$
+W₁ = W₀ + X₁ · (1) = X₁
+W₁ = [1, 1, 1, -1, 1, -1, 1, 1, 1]
+b₁ = 0 + 1 = 1
 
 **Update for Pattern 2 ('O'):**
-$W_{final} = W_1 + X_2 \cdot (-1)$
-$W_{final} = W_1 - X_2$
-$b_{final} = 1 + (-1) = 0$
+W_final = W₁ + X₂ · (-1)
+W_final = W₁ - X₂
+b_final = 1 + (-1) = 0
 
-**Calculation ($W_1 - X_2$):**
+**Calculation (W₁ - X₂):**
 
-- $w_1 = 1 - 1 = 0$
-- $w_2 = 1 - 1 = 0$
-- $w_3 = 1 - 1 = 0$
-- $w_4 = -1 - 1 = -2$
-- $w_5 = 1 - (-1) = 2$
-- $w_6 = -1 - 1 = -2$
-- $w_7 = 1 - 1 = 0$
-- $w_8 = 1 - 1 = 0$
-- $w_9 = 1 - 1 = 0$
+- w₁ = 1 - 1 = 0
+- w₂ = 1 - 1 = 0
+- w₃ = 1 - 1 = 0
+- w₄ = -1 - 1 = -2
+- w₅ = 1 - (-1) = 2
+- w₆ = -1 - 1 = -2
+- w₇ = 1 - 1 = 0
+- w₈ = 1 - 1 = 0
+- w₉ = 1 - 1 = 0
 
-**Final Weights:** $W = [0, 0, 0, -2, 2, -2, 0, 0, 0]$
-**Final Bias:** $b = 0$
+**Final Weights:** W = [0, 0, 0, -2, 2, -2, 0, 0, 0]
+**Final Bias:** b = 0
 
 ---
 
@@ -91,8 +91,8 @@ Filters (or kernels) in CNNs are small matrices of weights that slide over the i
 
 **Given:**
 
-- Input Image $I$ (6x6)
-- Filter $K$ (3x3)
+- Input Image I (6x6)
+- Filter K (3x3)
 - Stride = 1, No Padding.
 
 **Filter K:**
@@ -161,105 +161,105 @@ Since the middle column of K is 0, we just calculate: Σ(Left Col of P) - Σ(Rig
 ### **Q3. Fuzzy Defuzzification (10 Marks)**
 
 **Given:**
-A fuzzy set $A$ composed of four triangular membership functions:
+A fuzzy set A composed of four triangular membership functions:
 
-1.  **Pass:** Centered at 60, Peak $\mu=0.8$. Range approx [50, 70].
-2.  **Fair:** Centered at 70, Peak $\mu=0.6$. Range approx [60, 80].
-3.  **Good:** Centered at 80, Peak $\mu=0.4$. Range approx [70, 90].
-4.  **Very Good:** Centered at 90, Peak $\mu=0.2$. Range approx [80, 100].
+1.  **Pass:** Centered at 60, Peak μ=0.8. Range approx [50, 70].
+2.  **Fair:** Centered at 70, Peak μ=0.6. Range approx [60, 80].
+3.  **Good:** Centered at 80, Peak μ=0.4. Range approx [70, 90].
+4.  **Very Good:** Centered at 90, Peak μ=0.2. Range approx [80, 100].
 
 _(Note: Assuming symmetric triangles with base width 20 based on the grid)._
 
 #### **(i) Weighted Average Method (5 Marks)**
 
-Formula: $x^* = \frac{\sum \mu(x_i) \cdot x_i}{\sum \mu(x_i)}$
+Formula: x\* = [Σ μ(xᵢ) · xᵢ] / [Σ μ(xᵢ)]
 We use the peak values of the membership functions.
 
-- $x_1 = 60, \mu_1 = 0.8$
-- $x_2 = 70, \mu_2 = 0.6$
-- $x_3 = 80, \mu_3 = 0.4$
-- $x_4 = 90, \mu_4 = 0.2$
+- x₁ = 60, μ₁ = 0.8
+- x₂ = 70, μ₂ = 0.6
+- x₃ = 80, μ₃ = 0.4
+- x₄ = 90, μ₄ = 0.2
 
-$$x^* = \frac{(0.8 \times 60) + (0.6 \times 70) + (0.4 \times 80) + (0.2 \times 90)}{0.8 + 0.6 + 0.4 + 0.2}$$
-$$x^* = \frac{48 + 42 + 32 + 18}{2.0}$$
-$$x^* = \frac{140}{2} = \mathbf{70}$$
+x* = [(0.8 × 60) + (0.6 × 70) + (0.4 × 80) + (0.2 × 90)] / [0.8 + 0.6 + 0.4 + 0.2]
+x* = [48 + 42 + 32 + 18] / 2.0
+x\* = 140 / 2 = **70**
 
 #### **(ii) Center of Sums Method (5 Marks)**
 
-Formula: $x^* = \frac{\sum A_i \cdot \bar{x}_i}{\sum A_i}$
-Where $A_i$ is the area of the $i$-th membership function and $\bar{x}_i$ is its centroid.
-Area of triangle = $\frac{1}{2} \times \text{base} \times \text{height}$.
-Base for all seems to be $20$ (e.g., 50 to 70).
+Formula: x\* = [Σ Aᵢ · x̄ᵢ] / [Σ Aᵢ]
+Where Aᵢ is the area of the i-th membership function and x̄ᵢ is its centroid.
+Area of triangle = (1/2) × base × height.
+Base for all seems to be 20 (e.g., 50 to 70).
 
-- **Pass:** Area $A_1 = 0.5 \times 20 \times 0.8 = 8$. Centroid $\bar{x}_1 = 60$.
-- **Fair:** Area $A_2 = 0.5 \times 20 \times 0.6 = 6$. Centroid $\bar{x}_2 = 70$.
-- **Good:** Area $A_3 = 0.5 \times 20 \times 0.4 = 4$. Centroid $\bar{x}_3 = 80$.
-- **VG:** Area $A_4 = 0.5 \times 20 \times 0.2 = 2$. Centroid $\bar{x}_4 = 90$.
+- **Pass:** Area A₁ = 0.5 × 20 × 0.8 = 8. Centroid x̄₁ = 60.
+- **Fair:** Area A₂ = 0.5 × 20 × 0.6 = 6. Centroid x̄₂ = 70.
+- **Good:** Area A₃ = 0.5 × 20 × 0.4 = 4. Centroid x̄₃ = 80.
+- **VG:** Area A₄ = 0.5 × 20 × 0.2 = 2. Centroid x̄₄ = 90.
 
-$$x^* = \frac{(8 \times 60) + (6 \times 70) + (4 \times 80) + (2 \times 90)}{8 + 6 + 4 + 2}$$
-$$x^* = \frac{480 + 420 + 320 + 180}{20}$$
-$$x^* = \frac{1400}{20} = \mathbf{70}$$
+x* = [(8 × 60) + (6 × 70) + (4 × 80) + (2 × 90)] / [8 + 6 + 4 + 2]
+x* = [480 + 420 + 320 + 180] / 20
+x\* = 1400 / 20 = **70**
 
 ---
 
 ### **Q4. Fuzzy Set Operations (10 Marks)**
 
 **Given:**
-$U = \{a10, b52, c130, f2, f9\}$
-$A = \{ \frac{0.3}{a10} + \frac{0.4}{b52} + \frac{0.2}{c130} + \frac{0.1}{f2} + \frac{1}{f9} \}$
-$B = \{ \frac{0.1}{a10} + \frac{0.2}{b52} + \frac{0.8}{c130} + \frac{0.7}{f2} + \frac{0}{f9} \}$
+U = {a10, b52, c130, f2, f9}
+A = { 0.3/a10 + 0.4/b52 + 0.2/c130 + 0.1/f2 + 1/f9 }
+B = { 0.1/a10 + 0.2/b52 + 0.8/c130 + 0.7/f2 + 0/f9 }
 
-**(a) $A \cup B$ (Union - Max)**
-$\mu_{A \cup B}(x) = \max(\mu_A(x), \mu_B(x))$
-$= \{ \frac{0.3}{a10} + \frac{0.4}{b52} + \frac{0.8}{c130} + \frac{0.7}{f2} + \frac{1}{f9} \}$
+**(a) A ∪ B (Union - Max)**
+μ\_(A ∪ B)(x) = max(μ_A(x), μ_B(x))
+= { 0.3/a10 + 0.4/b52 + 0.8/c130 + 0.7/f2 + 1/f9 }
 
-**(b) $A \cap B$ (Intersection - Min)**
-$\mu_{A \cap B}(x) = \min(\mu_A(x), \mu_B(x))$
-$= \{ \frac{0.1}{a10} + \frac{0.2}{b52} + \frac{0.2}{c130} + \frac{0.1}{f2} + \frac{0}{f9} \}$
+**(b) A ∩ B (Intersection - Min)**
+μ\_(A ∩ B)(x) = min(μ_A(x), μ_B(x))
+= { 0.1/a10 + 0.2/b52 + 0.2/c130 + 0.1/f2 + 0/f9 }
 
-**(c) $\overline{A}$ (Complement)**
-$\mu_{\overline{A}}(x) = 1 - \mu_A(x)$
-$= \{ \frac{0.7}{a10} + \frac{0.6}{b52} + \frac{0.8}{c130} + \frac{0.9}{f2} + \frac{0}{f9} \}$
+**(c) Ā (Complement)**
+μ_Ā(x) = 1 - μ_A(x)
+= { 0.7/a10 + 0.6/b52 + 0.8/c130 + 0.9/f2 + 0/f9 }
 
-**(d) $\overline{B}$ (Complement)**
-$\mu_{\overline{B}}(x) = 1 - \mu_B(x)$
-$= \{ \frac{0.9}{a10} + \frac{0.8}{b52} + \frac{0.2}{c130} + \frac{0.3}{f2} + \frac{1}{f9} \}$
+**(d) B̄ (Complement)**
+μ_B̄(x) = 1 - μ_B(x)
+= { 0.9/a10 + 0.8/b52 + 0.2/c130 + 0.3/f2 + 1/f9 }
 
-**(e) $A | B$ (Difference $A - B = A \cap \overline{B}$)**
-$\mu_{A|B}(x) = \min(\mu_A(x), 1 - \mu_B(x))$
+**(e) A | B (Difference A - B = A ∩ B̄)**
+μ\_(A|B)(x) = min(μ_A(x), 1 - μ_B(x))
 
 - a10: min(0.3, 0.9) = 0.3
 - b52: min(0.4, 0.8) = 0.4
 - c130: min(0.2, 0.2) = 0.2
 - f2: min(0.1, 0.3) = 0.1
 - f9: min(1, 1) = 1
-  $= \{ \frac{0.3}{a10} + \frac{0.4}{b52} + \frac{0.2}{c130} + \frac{0.1}{f2} + \frac{1}{f9} \}$
+  = { 0.3/a10 + 0.4/b52 + 0.2/c130 + 0.1/f2 + 1/f9 }
 
-**(f) $B | A$ (Difference $B - A = B \cap \overline{A}$)**
-$\mu_{B|A}(x) = \min(\mu_B(x), 1 - \mu_A(x))$
+**(f) B | A (Difference B - A = B ∩ Ā)**
+μ\_(B|A)(x) = min(μ_B(x), 1 - μ_A(x))
 
 - a10: min(0.1, 0.7) = 0.1
 - b52: min(0.2, 0.6) = 0.2
 - c130: min(0.8, 0.8) = 0.8
 - f2: min(0.7, 0.9) = 0.7
 - f9: min(0, 0) = 0
-  $= \{ \frac{0.1}{a10} + \frac{0.2}{b52} + \frac{0.8}{c130} + \frac{0.7}{f2} + \frac{0}{f9} \}$
+  = { 0.1/a10 + 0.2/b52 + 0.8/c130 + 0.7/f2 + 0/f9 }
 
-**(g) $\overline{A \cup B}$**
-Same as $\overline{A} \cap \overline{B}$ (De Morgan's Law).
+**(g) A̅ ∪̅ B̅**
+Same as Ā ∩ B̄ (De Morgan's Law).
 Complement of result (a).
-$= \{ \frac{0.7}{a10} + \frac{0.6}{b52} + \frac{0.2}{c130} + \frac{0.3}{f2} + \frac{0}{f9} \}$
+= { 0.7/a10 + 0.6/b52 + 0.2/c130 + 0.3/f2 + 0/f9 }
 
-**(h) $\overline{A \cap B}$**
-Same as $\overline{A} \cup \overline{B}$.
+**(h) A̅ ∩̅ B̅**
+Same as Ā ∪ B̄.
 Complement of result (b).
-$= \{ \frac{0.9}{a10} + \frac{0.8}{b52} + \frac{0.8}{c130} + \frac{0.9}{f2} + \frac{1}{f9} \}$
+= { 0.9/a10 + 0.8/b52 + 0.8/c130 + 0.9/f2 + 1/f9 }
 
-**(i) $\overline{A} \cup \overline{B}$**
+**(i) Ā ∪ B̄**
 Same as (h).
-$= \{ \frac{0.9}{a10} + \frac{0.8}{b52} + \frac{0.8}{c130} + \frac{0.9}{f2} + \frac{1}{f9} \}$
+= { 0.9/a10 + 0.8/b52 + 0.8/c130 + 0.9/f2 + 1/f9 }
 
-**(j) $\overline{B} \cup A$**
+**(j) B̄ ∪ A**
 Union of (d) and A.
 
 - a10: max(0.9, 0.3) = 0.9
@@ -267,7 +267,8 @@ Union of (d) and A.
 - c130: max(0.2, 0.2) = 0.2
 - f2: max(0.3, 0.1) = 0.3
 - f9: max(1, 1) = 1
-  $= \{ \frac{0.9}{a10} + \frac{0.8}{b52} + \frac{0.2}{c130} + \frac{0.3}{f2} + \frac{1}{f9} \}$
+  = { 0.9/a10 + 0.8/b52 + 0.2/c130 + 0.3/f2 + 1/f9 }
+
 
 # Soft Computing End Semester Exam Solutions (Part 2)
 

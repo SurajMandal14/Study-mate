@@ -272,7 +272,6 @@ Union of (d) and A.
   $= \{ \frac{0.9}{a10} + \frac{0.8}{b52} + \frac{0.2}{c130} + \frac{0.3}{f2} + \frac{1}{f9} \}$
 
 
-
 # Soft Computing End Semester Exam Solutions (Part 2)
 
 **Subject:** Principles of Soft Computing (CSE 412)

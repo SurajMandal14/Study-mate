@@ -106,57 +106,55 @@ Filters (or kernels) in CNNs are small matrices of weights that slide over the i
 _(This is a vertical edge detector. It subtracts the right column pixel values from the left column pixel values)._
 
 **1) Perform Convolution (No Padding)**
-Output Size Formula: $O = \frac{W - K}{S} + 1$
-$O = \frac{6 - 3}{1} + 1 = 4$
+Output Size Formula: O = (W - K)/S + 1
+O = (6 - 3)/1 + 1 = 4
 The output will be a **4x4 matrix**.
 
 **Calculations (Row by Row):**
-Let's denote the 3x3 patch of the image as $P$. The operation is sum of element-wise product $P \cdot K$.
-Since the middle column of K is 0, we just calculate: $\sum(\text{Left Col of P}) - \sum(\text{Right Col of P})$.
+Let's denote the 3x3 patch of the image as P. The operation is sum of element-wise product P · K.
+Since the middle column of K is 0, we just calculate: Σ(Left Col of P) - Σ(Right Col of P).
 
 - **Row 1:**
 
-  - (0,0): Patch $\begin{bmatrix}1&2&3\\4&1&0\\1&3&1\end{bmatrix} \rightarrow (1+4+1) - (3+0+1) = 6 - 4 = \mathbf{2}$
-  - (0,1): Patch $\begin{bmatrix}2&3&0\\1&0&2\\3&1&2\end{bmatrix} \rightarrow (2+1+3) - (0+2+2) = 6 - 4 = \mathbf{2}$
-  - (0,2): Patch $\begin{bmatrix}3&0&1\\0&2&3\\1&2&0\end{bmatrix} \rightarrow (3+0+1) - (1+3+0) = 4 - 4 = \mathbf{0}$
-  - (0,3): Patch $\begin{bmatrix}0&1&2\\2&3&4\\2&0&1\end{bmatrix} \rightarrow (0+2+2) - (2+4+1) = 4 - 7 = \mathbf{-3}$
+  - (0,0): Patch [1,2,3 / 4,1,0 / 1,3,1] → (1+4+1) - (3+0+1) = 6 - 4 = **2**
+  - (0,1): Patch [2,3,0 / 1,0,2 / 3,1,2] → (2+1+3) - (0+2+2) = 6 - 4 = **2**
+  - (0,2): Patch [3,0,1 / 0,2,3 / 1,2,0] → (3+0+1) - (1+3+0) = 4 - 4 = **0**
+  - (0,3): Patch [0,1,2 / 2,3,4 / 2,0,1] → (0+2+2) - (2+4+1) = 4 - 7 = **-3**
 
 - **Row 2:**
 
-  - (1,0): Patch $\begin{bmatrix}4&1&0\\1&3&1\\0&1&2\end{bmatrix} \rightarrow (4+1+0) - (0+1+2) = 5 - 3 = \mathbf{2}$
-  - (1,1): Patch $\begin{bmatrix}1&0&2\\3&1&2\\1&2&4\end{bmatrix} \rightarrow (1+3+1) - (2+2+4) = 5 - 8 = \mathbf{-3}$
-  - (1,2): Patch $\begin{bmatrix}0&2&3\\1&2&0\\2&4&1\end{bmatrix} \rightarrow (0+1+2) - (3+0+1) = 3 - 4 = \mathbf{-1}$
-  - (1,3): Patch $\begin{bmatrix}2&3&4\\2&0&1\\4&1&3\end{bmatrix} \rightarrow (2+2+4) - (4+1+3) = 8 - 8 = \mathbf{0}$
+  - (1,0): Patch [4,1,0 / 1,3,1 / 0,1,2] → (4+1+0) - (0+1+2) = 5 - 3 = **2**
+  - (1,1): Patch [1,0,2 / 3,1,2 / 1,2,4] → (1+3+1) - (2+2+4) = 5 - 8 = **-3**
+  - (1,2): Patch [0,2,3 / 1,2,0 / 2,4,1] → (0+1+2) - (3+0+1) = 3 - 4 = **-1**
+  - (1,3): Patch [2,3,4 / 2,0,1 / 4,1,3] → (2+2+4) - (4+1+3) = 8 - 8 = **0**
 
 - **Row 3:**
 
-  - (2,0): Patch $\begin{bmatrix}1&3&1\\0&1&2\\2&3&0\end{bmatrix} \rightarrow (1+0+2) - (1+2+0) = 3 - 3 = \mathbf{0}$
-  - (2,1): Patch $\begin{bmatrix}3&1&2\\1&2&4\\3&0&1\end{bmatrix} \rightarrow (3+1+3) - (2+4+1) = 7 - 7 = \mathbf{0}$
-  - (2,2): Patch $\begin{bmatrix}1&2&0\\2&4&1\\0&1&3\end{bmatrix} \rightarrow (1+2+0) - (0+1+3) = 3 - 4 = \mathbf{-1}$
-  - (2,3): Patch $\begin{bmatrix}2&0&1\\4&1&3\\1&3&4\end{bmatrix} \rightarrow (2+4+1) - (1+3+4) = 7 - 8 = \mathbf{-1}$
+  - (2,0): Patch [1,3,1 / 0,1,2 / 2,3,0] → (1+0+2) - (1+2+0) = 3 - 3 = **0**
+  - (2,1): Patch [3,1,2 / 1,2,4 / 3,0,1] → (3+1+3) - (2+4+1) = 7 - 7 = **0**
+  - (2,2): Patch [1,2,0 / 2,4,1 / 0,1,3] → (1+2+0) - (0+1+3) = 3 - 4 = **-1**
+  - (2,3): Patch [2,0,1 / 4,1,3 / 1,3,4] → (2+4+1) - (1+3+4) = 7 - 8 = **-1**
 
 - **Row 4:**
-  - (3,0): Patch $\begin{bmatrix}0&1&2\\2&3&0\\1&2&4\end{bmatrix} \rightarrow (0+2+1) - (2+0+4) = 3 - 6 = \mathbf{-3}$
-  - (3,1): Patch $\begin{bmatrix}1&2&4\\3&0&1\\2&4&0\end{bmatrix} \rightarrow (1+3+2) - (4+1+0) = 6 - 5 = \mathbf{1}$
-  - (3,2): Patch $\begin{bmatrix}2&4&1\\0&1&3\\4&0&2\end{bmatrix} \rightarrow (2+0+4) - (1+3+2) = 6 - 6 = \mathbf{0}$
-  - (3,3): Patch $\begin{bmatrix}4&1&3\\1&3&4\\0&2&1\end{bmatrix} \rightarrow (4+1+0) - (3+4+1) = 5 - 8 = \mathbf{-3}$
+  - (3,0): Patch [0,1,2 / 2,3,0 / 1,2,4] → (0+2+1) - (2+0+4) = 3 - 6 = **-3**
+  - (3,1): Patch [1,2,4 / 3,0,1 / 2,4,0] → (1+3+2) - (4+1+0) = 6 - 5 = **1**
+  - (3,2): Patch [2,4,1 / 0,1,3 / 4,0,2] → (2+0+4) - (1+3+2) = 6 - 6 = **0**
+  - (3,3): Patch [4,1,3 / 1,3,4 / 0,2,1] → (4+1+0) - (3+4+1) = 5 - 8 = **-3**
 
 **Resulting Feature Map:**
 
-$$
-\begin{bmatrix}
-2 & 2 & 0 & -3 \\
-2 & -3 & -1 & 0 \\
-0 & 0 & -1 & -1 \\
--3 & 1 & 0 & -3
-\end{bmatrix}
-$$
+```
+  2    2    0   -3
+  2   -3   -1    0
+  0    0   -1   -1
+ -3    1    0   -3
+```
 
 **2) Padding of Size 1**
 
-- **New Input Size:** $6 + 2(1) = 8 \times 8$.
-- **New Output Size:** $O = \frac{8 - 3}{1} + 1 = 6$.
-- **Influence:** Padding allows the output feature map to maintain the same spatial dimensions ($6 \times 6$) as the original input ($6 \times 6$). It prevents the image from shrinking with every layer and allows the filter to process pixels at the very edge of the image.
+- **New Input Size:** 6 + 2(1) = 8 × 8.
+- **New Output Size:** O = (8 - 3)/1 + 1 = 6.
+- **Influence:** Padding allows the output feature map to maintain the same spatial dimensions (6 × 6) as the original input (6 × 6). It prevents the image from shrinking with every layer and allows the filter to process pixels at the very edge of the image.
 
 ---
 
@@ -271,7 +269,6 @@ Union of (d) and A.
 - f9: max(1, 1) = 1
   $= \{ \frac{0.9}{a10} + \frac{0.8}{b52} + \frac{0.2}{c130} + \frac{0.3}{f2} + \frac{1}{f9} \}$
 
-
 # Soft Computing End Semester Exam Solutions (Part 2)
 
 **Subject:** Principles of Soft Computing (CSE 412)
@@ -320,26 +317,26 @@ _(You should draw a flowchart like this)_
 
 **Given:**
 
-- Function: $f(x) = x^2 + x + 1$
-- Range: $[1, 63]$ (Requires 6 bits, as $2^6 = 64$)
+- Function: f(x) = x² + x + 1
+- Range: [1, 63] (Requires 6 bits, as 2⁶ = 64)
 - Initial Population: 20, 35, 54, 33, 60, 12
 - Operations: Binary Encoding, Roulette-wheel selection, Single-point crossover (4th position), Mutation mask 000001.
 
 **Step 1: Fitness Calculation**
-Calculate $f(x)$ for each individual.
+Calculate f(x) for each individual.
 
-| Individual | Binary (6-bit) | Calculation ($x^2 + x + 1$) | Fitness $f(x)$ |
-| :--------- | :------------- | :-------------------------- | :------------- |
-| 20         | 010100         | $400 + 20 + 1$              | 421            |
-| 35         | 100011         | $1225 + 35 + 1$             | 1261           |
-| 54         | 110110         | $2916 + 54 + 1$             | 2971           |
-| 33         | 100001         | $1089 + 33 + 1$             | 1123           |
-| 60         | 111100         | $3600 + 60 + 1$             | 3661           |
-| 12         | 001100         | $144 + 12 + 1$              | 157            |
-| **Total**  |                |                             | **9594**       |
+| Individual | Binary (6-bit) | Calculation (x² + x + 1) | Fitness f(x) |
+| :--------- | :------------- | :----------------------- | :----------- |
+| 20         | 010100         | 400 + 20 + 1             | 421          |
+| 35         | 100011         | 1225 + 35 + 1            | 1261         |
+| 54         | 110110         | 2916 + 54 + 1            | 2971         |
+| 33         | 100001         | 1089 + 33 + 1            | 1123         |
+| 60         | 111100         | 3600 + 60 + 1            | 3661         |
+| 12         | 001100         | 144 + 12 + 1             | 157          |
+| **Total**  |                |                          | **9594**     |
 
 **Step 2: Selection (Roulette Wheel)**
-We calculate the probability of selection $P_i = \frac{f_i}{\sum f}$.
+We calculate the probability of selection: P(i) = f(i) / Σf
 
 - P(20) = 0.04
 - P(35) = 0.13
@@ -390,8 +387,8 @@ The new population is {22, 33, 52, 35, 61, 13}.
 The maximum value is **61**.
 
 Calculate fitness for 61:
-$f(61) = 61^2 + 61 + 1$
-$f(61) = 3721 + 61 + 1 = \mathbf{3783}$
+f(61) = 61² + 61 + 1
+f(61) = 3721 + 61 + 1 = **3783**
 
 **Answer:** The maximum fitness value after one iteration is **3783**.
 
@@ -406,8 +403,8 @@ Tournament selection is a method of selecting individuals from the population fo
 
 **Process:**
 
-1.  Select $k$ individuals randomly from the population ($k$ is the tournament size).
-2.  Compare the fitness of these $k$ individuals.
+1.  Select k individuals randomly from the population (k is the tournament size).
+2.  Compare the fitness of these k individuals.
 3.  The individual with the highest fitness wins the tournament and is selected as a parent.
 4.  Repeat the process to select more parents.
 
@@ -415,7 +412,7 @@ Tournament selection is a method of selecting individuals from the population fo
 
 - Efficient to implement.
 - Works well with parallel architectures.
-- Selection pressure can be adjusted by changing the tournament size $k$ (larger $k$ = higher pressure).
+- Selection pressure can be adjusted by changing the tournament size k (larger k = higher pressure).
 
 #### **(ii) Mutation Techniques (5 Marks)**
 

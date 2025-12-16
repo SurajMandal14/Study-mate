@@ -1,5 +1,108 @@
 # DEEP LEARNING EXAM SOLUTIONS - PART 1
 
+---
+
+# UNITS 1-3: IMPORTANT TOPICS SUMMARY
+
+## UNIT 1: ML FUNDAMENTALS
+
+### Theory Topics:
+
+- **Classification vs Regression:** Classification predicts categories; Regression predicts continuous values
+- **Bias-Variance Tradeoff:** Bias = underfitting error; Variance = overfitting sensitivity; Total error = Bias² + Variance + Irreducible error
+- **Loss Functions:** MSE (regression), Cross-Entropy (classification), Hinge Loss (SVM)
+- **Perceptron:** Linear classifier; activation: step function; updates weights: $w = w + \eta(y - \hat{y})x$
+
+### Numerical Topics:
+
+- **Perceptron Computation:** Input × Weight → Threshold → Output (0 or 1)
+- **Loss Calculation:** Example: MSE = $\frac{1}{N}\sum(y_i - \hat{y}_i)^2$
+- **Bias-Variance Calculation:** Estimate from cross-validation folds; low bias + high variance = overfitting
+
+---
+
+## UNIT 2: NEURAL NETWORKS FUNDAMENTALS
+
+### Theory Topics:
+
+- **Activation Functions:** ReLU (non-saturating, efficient), Sigmoid (squashes to 0-1), Tanh (squashes to -1 to 1), Softmax (probability distribution)
+- **Gradient Descent:** Iteratively update weights opposite to loss gradient; step size = learning rate
+- **Backpropagation:** Chain rule computes gradient through layers; $\frac{\partial L}{\partial w} = \frac{\partial L}{\partial a} \cdot \frac{\partial a}{\partial w}$
+- **Gradient Computation:** For each layer: compute loss gradient → activation gradient → weight gradient
+
+### Numerical Topics:
+
+- **Gradient Descent Update:** $w_{new} = w_{old} - \eta \cdot \nabla L(w)$ where $\eta$ = learning rate
+- **Sigmoid Gradient:** $\sigma'(x) = \sigma(x)(1-\sigma(x))$
+- **ReLU Gradient:** $\text{ReLU}'(x) = \begin{cases} 1 & \text{if } x > 0 \\ 0 & \text{if } x \leq 0 \end{cases}$
+- **Example Backprop:** 3-layer network: Output layer → Hidden layer 2 → Hidden layer 1 (chain rule at each step)
+
+---
+
+## UNIT 3: CNN FUNDAMENTALS
+
+### Theory Topics:
+
+- **Convolution Operation:** Slide kernel over image, compute element-wise products with input regions, sum to produce output
+- **Output Feature Maps:** Result of applying multiple filters; number of filters = number of output channels
+- **Parameters in CNN Layer:** Depend on kernel size, input channels, output channels, bias
+- **Object Detection:** Localize AND classify objects; outputs: bounding box + class label (vs classification which only outputs class)
+
+### Numerical Topics:
+
+**1. Output Size Calculation Formula:**
+$$H_{out} = \frac{H_{in} - K + 2P}{S} + 1$$
+Where: H_in = input height, K = kernel size, P = padding, S = stride
+
+**Example:** Input 224×224, Kernel 3×3, Padding 1, Stride 1
+
+- Output = (224 - 3 + 2×1)/1 + 1 = 224×224
+
+**2. Parameter Counting Formula:**
+$$\text{Parameters} = K \times K \times C_{in} \times C_{out} + C_{out}$$
+Where: K = kernel size, C_in = input channels, C_out = output channels, C_out = biases
+
+**Example:** Conv layer: 32 input channels, 64 output filters, 3×3 kernel
+
+- Parameters = 3 × 3 × 32 × 64 + 64 = 18,496 parameters
+
+**3. Convolution Numerical Example:**
+Input: $\begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\ 7 & 8 & 9 \end{bmatrix}$, Kernel: $\begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$ (stride=1, padding=0)
+
+Output computation:
+
+- Position (0,0): 1×1 + 2×0 + 4×0 + 5×1 = 6
+- Position (0,1): 2×1 + 3×0 + 5×0 + 6×1 = 8
+- Position (1,0): 4×1 + 5×0 + 7×0 + 8×1 = 12
+- Position (1,1): 5×1 + 6×0 + 8×0 + 9×1 = 14
+
+Output: $\begin{bmatrix} 6 & 8 \\ 12 & 14 \end{bmatrix}$ (2×2)
+
+**4. Object Detection:**
+
+- Bounding box format: (x_min, y_min, x_max, y_max) or (center_x, center_y, width, height)
+- Classification: Probability for each class (using softmax)
+- Example: Image 416×416 with 80 classes → Output tensor 13×13×(5+80) = 13×13×85 per anchor
+
+---
+
+## QUICK REFERENCE: THEORY vs NUMERICAL
+
+| Unit  | Topic                     | Theory Focus             | Numerical Focus                        |
+| ----- | ------------------------- | ------------------------ | -------------------------------------- |
+| **1** | Classification/Regression | When to use each         | Loss calculations, accuracy metrics    |
+| **1** | Bias-Variance             | Concept tradeoff         | Calculate from CV folds                |
+| **1** | Perceptron                | How it learns            | Weight updates, decision boundary      |
+| **2** | Activation Functions      | Why ReLU > Sigmoid       | Gradient computations, ranges          |
+| **2** | Gradient Descent          | Direction of updates     | Learning rate tuning, convergence rate |
+| **2** | Backpropagation           | Chain rule concept       | Gradient flow through layers           |
+| **3** | Convolution               | Kernel sliding mechanism | Output size calculation                |
+| **3** | Parameters                | Why they matter          | Count for each layer                   |
+| **3** | Feature Maps              | Resolution changes       | Size after each layer                  |
+| **3** | Object Detection          | Region + class together  | Bounding box coordinates + confidence  |
+
+---
+
 ## UNIT 3: CNN ARCHITECTURES
 
 ---
@@ -5012,6 +5115,7 @@ Instance Masks Output
 ## Q2: U-NET ARCHITECTURE
 
 ### Question:
+
 Explain the "Contracting Path" and the "Expansive Path" in U-Net. What is the critical role of **Skip Connections** (Copy and Crop) in achieving precise localization?
 
 ---
@@ -5029,6 +5133,7 @@ Symmetric encoder-decoder architecture shaped like 'U' - enables precise pixel-l
 ### Part A: Architecture Components
 
 **Three Main Structures:**
+
 1. **Contracting Path (Encoder)** - Downsampling to extract features
 2. **Bottleneck** - Feature concentration at smallest size
 3. **Expansive Path (Decoder)** - Upsampling to restore spatial dimensions
@@ -5040,11 +5145,13 @@ Symmetric encoder-decoder architecture shaped like 'U' - enables precise pixel-l
 **Purpose:** Extract semantic features and compress spatial dimensions
 
 **Process:**
+
 - Two consecutive 33 convolutions + ReLU activation
 - MaxPooling 22 (stride=2) downsamples by half
-- Channel progression: 64  128  256  512  1024
+- Channel progression: 64 128 256 512 1024
 
 **Information Captured:**
+
 - Layer 1: Edge detection (low-level features)
 - Layers 2-4: Progressively higher semantic abstraction
 - Bottleneck: Highly abstract representation (3232)
@@ -5058,10 +5165,11 @@ Symmetric encoder-decoder architecture shaped like 'U' - enables precise pixel-l
 **Purpose:** Reconstruct spatial information and generate pixel-level segmentation
 
 **Process:**
+
 - Transposed convolution 22 (stride=2) upsamples each layer
 - Skip connections merge corresponding encoder features
 - Standard convolutions refine combined features
-- Channel progression: 1024  512  256  128  64  num_classes
+- Channel progression: 1024 512 256 128 64 num_classes
 
 **Size Expansion:** 3264128256512572 pixels
 
@@ -5072,12 +5180,14 @@ Symmetric encoder-decoder architecture shaped like 'U' - enables precise pixel-l
 **Definition:** Direct connections that concatenate encoder features with decoder upsampled features at each level
 
 **Problem Without Skip Connections:**
+
 - Information bottleneck at 3232 compression
 - Fine-grained spatial details lost (edges, textures, small structures)
 - Decoder cannot reference original spatial precision
 - Result: Blurry, imprecise segmentation boundaries
 
 **Solution With Skip Connections:**
+
 - Save all encoder layer outputs at full resolution
 - At each decoder upsample, concatenate with corresponding encoder features
 - Decoder fuses coarse semantics WITH fine spatial details
@@ -5087,7 +5197,7 @@ Symmetric encoder-decoder architecture shaped like 'U' - enables precise pixel-l
 
 **Mechanism at Each Level:**
 
-1. Transpose convolution upsamples (e.g., 3232  6464)
+1. Transpose convolution upsamples (e.g., 3232 6464)
 2. Retrieve saved encoder layer (e.g., 6464 with 512 channels)
 3. Concatenate upsampled + encoder (6464 with 1024 channels total)
 4. Standard convolution learns to fuse both information sources
@@ -5103,8 +5213,9 @@ High-resolution encoder features contain fine details (boundaries, textures, edg
 
 **2. Gradient Flow Enhancement**
 
-Short direct paths from loss  skip  encoder:
-- Compared to: Loss  Bottleneck  Encoder (very long)
+Short direct paths from loss skip encoder:
+
+- Compared to: Loss Bottleneck Encoder (very long)
 - Enables stronger gradient signals during backpropagation
 - Faster training convergence
 - Mitigates vanishing gradient problem
@@ -5120,6 +5231,7 @@ Skip connection enables: Intelligent fusion creating both semantically meaningfu
 ### Part F: Feature Hierarchy Recovery
 
 Each decoder level with skip connection progressively recovers:
+
 - Layer 5 (6464 + skip): Object shapes, large structures
 - Layer 4 (128128 + skip): Medium-sized details, contours
 - Layer 3 (256256 + skip): Fine textures, edge patterns
@@ -5132,17 +5244,18 @@ Each fusion learns how to combine high-level meaning with low-level precision.
 
 ### Part G: Key Insights
 
- **Skip connections solve information bottleneck** - preserve fine spatial details throughout entire network
+**Skip connections solve information bottleneck** - preserve fine spatial details throughout entire network
 
- **Enable precise localization** - merge high-resolution encoder features with semantic decoder features at every level
+**Enable precise localization** - merge high-resolution encoder features with semantic decoder features at every level
 
- **Critical for biomedical segmentation** - where exact boundary localization is clinically essential for diagnosis and surgery planning
+**Critical for biomedical segmentation** - where exact boundary localization is clinically essential for diagnosis and surgery planning
 
 ---
 
 ## Q3: TRANSPOSED CONVOLUTION
 
 ### Question:
+
 Define Transposed Convolution (Deconvolution). How does it differ from standard convolution in upsampling a feature map?
 
 ---
@@ -5174,6 +5287,7 @@ Alternative names: Deconvolution (misleading), fractionally-strided convolution,
 **Spatial Effect:** Increases dimensions (upsampling)
 
 **Process:**
+
 1. Place kernel at position of each input element
 2. Multiply each input value with entire learned kernel
 3. Sum overlapping kernel outputs
@@ -5187,32 +5301,35 @@ Alternative names: Deconvolution (misleading), fractionally-strided convolution,
 
 ### Part C: Key Differences - Standard vs Transposed
 
-| Property | Standard Conv | Transposed Conv |
-|----------|---------------|-----------------|
-| **Spatial effect** | Reduces dimension () | Increases dimension () |
-| **Input size** | Large | Small |
-| **Output size** | Small | Large |
-| **Typical layer location** | Encoder | Decoder |
-| **Learnable** | Yes (weights trained) | Yes (weights trained) |
-| **Typical stride** | >1 (downsampling) | Can be >1 (fractional) |
+| Property                   | Standard Conv         | Transposed Conv        |
+| -------------------------- | --------------------- | ---------------------- |
+| **Spatial effect**         | Reduces dimension ()  | Increases dimension () |
+| **Input size**             | Large                 | Small                  |
+| **Output size**            | Small                 | Large                  |
+| **Typical layer location** | Encoder               | Decoder                |
+| **Learnable**              | Yes (weights trained) | Yes (weights trained)  |
+| **Typical stride**         | >1 (downsampling)     | Can be >1 (fractional) |
 
 ---
 
 ### Part D: Upsampling Methods Comparison
 
 **1. Naive Upsampling (No Learning)**
+
 - Repeat each pixel
 - No learnable parameters
 - Creates visual artifacts and blocky output
 - Generic for all images
 
 **2. Bilinear Interpolation (Fixed)**
+
 - Weighted averaging of neighbors
 - No learnable parameters
 - Smooth output but generic pattern
 - Cannot adapt to specific data distribution
 
 **3. Transposed Convolution (Learnable)**
+
 - Applies learned kernels during expansion
 - Trainable weights optimized for task
 - Data-driven expansion pattern
@@ -5224,14 +5341,16 @@ Alternative names: Deconvolution (misleading), fractionally-strided convolution,
 
 **Output Size Calculation:**
 
-15H_{out} = (H_{in} - 1) \cdot s + k15
+15H*{out} = (H*{in} - 1) \cdot s + k15
 
 Where:
+
 - {in}$ = Input height
 - $ = Stride
 - $ = Kernel size
 
 Example: 1414 input, stride=2, kernel=33
+
 - Output: (14-1)2 + 3 = 2929
 
 ---
@@ -5241,10 +5360,10 @@ Example: 1414 input, stride=2, kernel=33
 **Standard Convolution:**
 `
 Large feature map (572572)
-        (many pixels  few values)
-     [Extract features]
-       
-  Bottleneck (3232)
+(many pixels few values)
+[Extract features]
+
+Bottleneck (3232)
 
 Effect: Lossy compression
 `
@@ -5252,9 +5371,9 @@ Effect: Lossy compression
 **Transposed Convolution:**
 `
 Bottleneck (3232)
-        (few values  many pixels)
-     [Expand with learned patterns]
-       
+(few values many pixels)
+[Expand with learned patterns]
+
 Large feature map (572572)
 
 Effect: Learned reconstruction (not true inverse)
@@ -5267,12 +5386,14 @@ Key point: Not a true mathematical inverse of convolution - learns intelligent e
 ### Part G: Role in Segmentation Networks (U-Net)
 
 **Decoder integration:**
-- TransposeConv: Coarse spatial expansion (3232  6464)
+
+- TransposeConv: Coarse spatial expansion (3232 6464)
 - Skip connection: Provides high-resolution spatial reference
 - Standard conv: Refines and intelligently fuses information
 - Together: Achieves precise reconstruction
 
 **Why learning upsampling matters:**
+
 - Task-specific: Learns optimal upsampling for segmentation task
 - Data-driven: Adapts to image statistics and distributions
 - Gradient-based: Weights trained via backpropagation
@@ -5283,12 +5404,14 @@ Key point: Not a true mathematical inverse of convolution - learns intelligent e
 ### Part H: Learnable vs Fixed Comparison
 
 **Fixed Methods (Repeat/Interpolate):**
+
 - Same upsampling pattern for all images
 - Cannot adapt to data distribution
 - Produces generic smooth output
 - Suitable only for simple cases
 
 **Transposed Convolution:**
+
 - Learns dataset-specific upsampling patterns
 - Adapts to specific segmentation task
 - Can recover complex spatial features
@@ -5298,17 +5421,18 @@ Key point: Not a true mathematical inverse of convolution - learns intelligent e
 
 ### Part I: Key Insight
 
- **Transposed convolution is learnable upsampling** - adapts to task and data through learned kernels
+**Transposed convolution is learnable upsampling** - adapts to task and data through learned kernels
 
- **Not a true mathematical inverse** - learns intelligent feature expansion, cannot recover pre-compression information
+**Not a true mathematical inverse** - learns intelligent feature expansion, cannot recover pre-compression information
 
- **Essential for precise segmentation** - especially when combined with skip connections in U-Net and similar architectures
+**Essential for precise segmentation** - especially when combined with skip connections in U-Net and similar architectures
 
 ---
 
 ## Q4: LOSS FUNCTIONS FOR SEGMENTATION
 
 ### Question:
+
 Explain why **Pixel-wise Cross-Entropy Loss** and **Dice Coefficient** are commonly used for training segmentation models. What problems do they solve?
 
 ---
@@ -5329,7 +5453,7 @@ Explain why **Pixel-wise Cross-Entropy Loss** and **Dice Coefficient** are commo
 
 **Formula (Binary Segmentation):**
 
-15L_{CE} = -\frac{1}{N} \sum_{i=1}^{N} [y_i \log(\hat{y}_i) + (1-y_i) \log(1-\hat{y}_i)]15
+15L*{CE} = -\frac{1}{N} \sum*{i=1}^{N} [y_i \log(\hat{y}_i) + (1-y_i) \log(1-\hat{y}_i)]15
 
 Where: N=total pixels, y=ground truth (0 or 1), y=predicted probability
 
@@ -5338,16 +5462,19 @@ Where: N=total pixels, y=ground truth (0 or 1), y=predicted probability
 ### Part B: Strengths of Cross-Entropy Loss
 
 **1. Probabilistic Grounding**
+
 - Models prediction as classification probability
 - Well-established in information theory
 - Interpretable output range (0 to 1)
 
 **2. Optimization Properties**
+
 - Convex loss function
 - Stable gradients throughout training
 - No local minima to trap optimization
 
 **3. Confidence Penalty**
+
 - Penalizes confident wrong predictions more heavily
 - Encourages well-calibrated model confidence
 - Rewards correct predictions with high confidence
@@ -5359,10 +5486,12 @@ Where: N=total pixels, y=ground truth (0 or 1), y=predicted probability
 **Problem 1: Class Imbalance**
 
 Typical medical segmentation scenario:
+
 - Background pixels: 95% of image
 - Tumor/lesion pixels: 5% of image
 
 If network predicts ALL pixels as background:
+
 - Accuracy = 95% (appears good!)
 - Cross-entropy loss still relatively small
 - Clinically useless (0% tumor detection rate)
@@ -5386,7 +5515,7 @@ Root cause: CE treats all pixels equally - doesn't weight minority classes highe
 
 **Formula:**
 
-15L_{Dice} = 1 - \frac{2 \sum_i p_i \cdot g_i}{\sum_i p_i^2 + \sum_i g_i^2}15
+15L\_{Dice} = 1 - \frac{2 \sum_i p_i \cdot g_i}{\sum_i p_i^2 + \sum_i g_i^2}15
 
 Intuition: Dice = percentage of pixel overlap between masks (higher overlap = lower loss)
 
@@ -5397,12 +5526,14 @@ Intuition: Dice = percentage of pixel overlap between masks (higher overlap = lo
 **Key Property: Scale Invariance**
 
 Large object scenario:
+
 - Ground truth: 10,000 pixels
 - Prediction: 8,000 pixels (correct class)
 - Overlap: 7,000 pixels
 - Dice = 27,000/(10,000+8,000) = 0.778
 
 Small object scenario:
+
 - Ground truth: 100 pixels
 - Prediction: 80 pixels (correct class)
 - Overlap: 70 pixels
@@ -5417,10 +5548,12 @@ Small object scenario:
 Image with 5% tumor, 95% background:
 
 CE Loss perspective:
-- Missing 1 tumor pixel: Loss  minimal (95% correct anyway)
+
+- Missing 1 tumor pixel: Loss minimal (95% correct anyway)
 - Missing 1 background pixel: Moderate loss
 
 Dice Loss perspective:
+
 - Missing tumor pixels: Directly reduces numerator
 - Dice = 2(overlap) / (all pixels involved)
 - Even few missing tumor pixels significantly reduce Dice score
@@ -5432,16 +5565,19 @@ Result: Dice equally penalizes missing foreground and background pixels regardle
 ### Part F: Strengths of Dice Loss
 
 **1. Direct Segmentation Metric**
+
 - Measures what clinically matters: overlap percentage
 - Aligns with clinical evaluation metrics (Jaccard, IoU)
 - Intuitive interpretation
 
 **2. Inherent Class Balance**
+
 - Automatically weights minority classes appropriately
 - Fair across imbalanced datasets
 - No special configuration needed
 
 **3. Scale Independence**
+
 - Valid for any image size or object size
 - Comparable across different segmentation tasks
 - Works from single-pixel objects to large regions
@@ -5453,6 +5589,7 @@ Result: Dice equally penalizes missing foreground and background pixels regardle
 **Problem 1: Boundary Sensitivity**
 
 Dice measures overlap magnitude, not boundary precision:
+
 - 1-pixel boundary offset: Dice still high (0.95+)
 - But clinically can be significant error
 - CE Loss would penalize every misclassified boundary pixel
@@ -5464,11 +5601,13 @@ Dice measures overlap magnitude, not boundary precision:
 Dice = 2overlap / (predicted pixels + truth pixels)
 
 Small objects:
+
 - Few total pixels
 - Single pixel error causes large relative Dice drop
 - Network may focus heavily on small objects
 
 Large objects:
+
 - Many total pixels
 - Single pixel error causes tiny relative Dice drop
 - Network may deprioritize large object accuracy
@@ -5487,37 +5626,42 @@ Large objects:
 
 **Why Combine?**
 
-15L_{total} = \alpha \cdot L_{CE} + \beta \cdot L_{Dice}15
+15L*{total} = \alpha \cdot L*{CE} + \beta \cdot L\_{Dice}15
 
 Typical weighting: a=0.5, �=0.5 (equal contribution)
 
 **Complementary Benefits:**
 
 Cross-Entropy contributions:
--  Stable training dynamics
--  Well-behaved gradients
--  Pixel-level classification accuracy
+
+- Stable training dynamics
+- Well-behaved gradients
+- Pixel-level classification accuracy
 
 Dice Loss contributions:
--  Class imbalance handling
--  Direct segmentation metric
--  Emphasis on overlap quality
+
+- Class imbalance handling
+- Direct segmentation metric
+- Emphasis on overlap quality
 
 Combined result:
--  Precise, balanced, clinically useful segmentation
--  Stable training + class-fair optimization
+
+- Precise, balanced, clinically useful segmentation
+- Stable training + class-fair optimization
 
 ---
 
 **Training Phases:**
 
 **Early epochs:**
+
 - Both losses high
 - CE guides general feature learning
 - Dice prevents class imbalance bias
 - Network learns coarse segmentation
 
 **Later epochs:**
+
 - Both losses decrease
 - CE fine-tunes boundary accuracy
 - Dice optimizes overlap quality
@@ -5527,27 +5671,27 @@ Combined result:
 
 ### Part I: Summary Comparison
 
-| Aspect | Cross-Entropy | Dice Coefficient |
-|--------|---------------|------------------|
-| **Measures** | Pixel classification probability | Mask overlap percentage |
-| **Handles class imbalance** |  Weak (all pixels weighted equally) |  Strong (scale-invariant) |
-| **Boundary focus** |  All pixels treated equally |  Less emphasis on edges |
-| **Training stability** |  Very stable gradients |  Can be unstable |
-| **Interpretability** |  Less intuitive meaning |  Direct % overlap |
-| **Small object bias** |  Fair treatment |  Potential bias |
-| **Recommended use** | Combined with Dice | Combined with CE |
+| Aspect                      | Cross-Entropy                      | Dice Coefficient         |
+| --------------------------- | ---------------------------------- | ------------------------ |
+| **Measures**                | Pixel classification probability   | Mask overlap percentage  |
+| **Handles class imbalance** | Weak (all pixels weighted equally) | Strong (scale-invariant) |
+| **Boundary focus**          | All pixels treated equally         | Less emphasis on edges   |
+| **Training stability**      | Very stable gradients              | Can be unstable          |
+| **Interpretability**        | Less intuitive meaning             | Direct % overlap         |
+| **Small object bias**       | Fair treatment                     | Potential bias           |
+| **Recommended use**         | Combined with Dice                 | Combined with CE         |
 
 ---
 
 ### Part J: Key Insights
 
- **Cross-Entropy Loss:** Stable foundation enabling precise pixel classification and well-calibrated prediction confidence
+**Cross-Entropy Loss:** Stable foundation enabling precise pixel classification and well-calibrated prediction confidence
 
- **Dice Coefficient Loss:** Addresses class imbalance through scale-invariant overlap metric, aligns with clinical evaluation
+**Dice Coefficient Loss:** Addresses class imbalance through scale-invariant overlap metric, aligns with clinical evaluation
 
- **Combined Approach:** Industry best practice - leverages complementary strengths for superior balanced segmentation
+**Combined Approach:** Industry best practice - leverages complementary strengths for superior balanced segmentation
 
- **Problem-solving:** Loss function choice reflects specific segmentation challenges (class imbalance vs training stability vs boundary precision)
+**Problem-solving:** Loss function choice reflects specific segmentation challenges (class imbalance vs training stability vs boundary precision)
 
 ---
 

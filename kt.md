@@ -898,6 +898,723 @@ Dataiku Datasets → Cache (30s) → API Endpoints → Frontend
 
 ---
 
+## KT Session Script - Code Walkthrough
+
+### How to Use This Script
+
+This is a conversational walkthrough you can use to explain the code line-by-line to new developers. Open `app.py` side-by-side and follow along.
+
+---
+
+### **Session Start: Introduction (5 mins)**
+
+**"Welcome to Smart Scheduler! Let me walk you through the entire codebase. Since you've already seen the UI and understand the flow, we'll focus on how the code actually works behind the scenes.**
+
+**This is a Flask application with about 5000+ lines. Don't worry - we'll go through it logically, and I'll explain the important parts. Open app.py in your editor so you can follow along.**
+
+**Let's start from the top..."**
+
+---
+
+### **Part 1: Imports and Configuration (Lines 1-70)**
+
+**"First, let's look at our imports at the very top of the file:**
+
+**Lines 1-16: Standard Python Libraries**
+
+- Flask for the web framework
+- Pandas for data manipulation - we use this HEAVILY
+- Dataiku for connecting to our datasets
+- openpyxl for Excel exports
+- datetime for date handling
+
+**Lines 18-50: Configuration Section**
+
+**This is critical. Let me explain each config variable:**
+
+**`MANAGED_FOLDER_ID = "EcobzUlG"`**
+
+- This is where bookings.csv lives in Dataiku
+- Think of it as our database - every booking write goes here
+
+**`BOOKINGS_FILE_PATH = "bookings.csv"`**
+
+- The actual filename in that folder
+- Contains all live bookings
+
+**`SUPER_ADMIN_PSIDS = [1406088, 1666904, ...]`**
+
+- These PSIDs can see ALL audits and bookings
+- Everyone else sees only their group's data (RBAC)
+
+**`CACHE_TTL_SECONDS = 30`**
+
+- We cache bookings and availability for 30 seconds
+- Why? Because loading 7000+ bookings every API call takes 30-60 seconds!
+- This one setting made the app 100x faster
+
+**`COLOR_PALETTE = [...]`**
+
+- Colors for the calendar UI
+- Each audit type gets a unique color automatically
+
+**Important question to ask: "Do you understand why we need caching? Imagine if every calendar click took 60 seconds to load..."**
+
+---
+
+### **Part 2: Global Dataset Loading (Lines 80-150)**
+
+**"Now, here's something interesting. Around line 80-150, we load all datasets at MODULE level - meaning they load ONCE when the app starts, not on every request.**
+
+**Let me show you:"**
+
+**`demand_suggestions_df = get_demand_suggestions_df()`**
+
+- Loads ALL demand suggestions once
+- Contains unmet audit requirements
+- Used for matching resources to audits
+
+**`availability_df = get_availability_df()`**
+
+- Resource availability by date
+- This is KEY - tells us who's available on which days
+
+**`audit_df = get_audit_df()`**
+
+- Audit metadata
+- Used for filtering by group (RBAC)
+
+**"Why load at module level? Performance! These datasets don't change often, so we load them once and reuse. Only bookings.csv changes frequently, so that has a 30-second cache."**
+
+**Pop quiz for them: "What happens if availability data changes in Dataiku? How do we refresh it?"**
+_(Answer: Restart Flask app or wait for next deployment)_
+
+---
+
+### **Part 3: The Caching System (Lines 345-380)**
+
+**"Let's look at one of the most important functions: `load_availability()` around line 345.**
+
+**Walk through the code:**
+
+```
+def load_availability():
+    global AVAILABILITY_DATAFRAME_CACHE
+
+    # Check if cache is valid
+    current_time = time.time()
+    if cache is fresh (< 30 seconds old):
+        return cached copy
+
+    # Cache expired - reload from Dataiku
+    df = get_availability_df()
+
+    # CRITICAL: Convert to float, not int
+    df['daily_available_hours'] = ...astype(float)
+```
+
+**"Stop here. This line 367 is CRITICAL. See that `.astype(float)`? Originally it was `.astype(int)`. Do you know what happened?"**
+
+_(Wait for answer)_
+
+**"Right - it truncated 0.8 hours to 0! Users couldn't book fractional hours. We spent 2 days debugging this. Always use float for hours/capacity."**
+
+**"Now look at the caching logic:**
+
+- Check timestamp
+- If < 30 seconds old, return cached copy
+- Else reload from Dataiku and update cache
+- ALWAYS return `.copy()` to prevent modifying cached data
+
+**"This pattern repeats in `load_bookings()`. Same logic, different data."**
+
+---
+
+### **Part 4: The Duplicate Booking Remover (Lines 417-485)**
+
+**"Around line 417, there's a function called `remove_duplicate_bookings()`. Let me tell you a story about why this exists..."**
+
+**"In production, we found bookings appearing TWICE in bookings.csv. Same PSID, same audit, same dates - but two rows. This meant:**
+
+- 0.5h booking counted as 1.0h
+- People showed fully booked when they had capacity
+- We removed 413 duplicate rows from live data!
+
+**Walk through the logic:**
+
+```
+Group by: PSID + audit_number + BookedFrom + BookedTo + demand_id
+
+Why demand_id?
+- Same person CAN be on same audit for different demands
+- We only merge TRUE duplicates
+
+When merging:
+- Sum allocated_hours (0.5 + 0.5 = 1.0)
+- Keep first value for other fields
+```
+
+**"This runs automatically every 30 seconds when bookings reload. Silent protection against duplicates."**
+
+**Question: "Why not fix the root cause - prevent duplicates at write time?"**
+_(Good discussion point - talk about race conditions, no DB constraints on CSV, etc.)_
+
+---
+
+### **Part 5: Booking Creation - The Complex One (Lines 2246-2750)**
+
+**"Now we get to the most complex function: `add_booking()` around line 2246. This is where bookings actually get created. Grab a coffee, this one's dense."**
+
+**"When a user clicks 'Book' on the UI, this is what happens:**
+
+**Step 1: Parse Input (Lines 2250-2260)**
+
+```python
+psid = int(data['psid'])
+start_date = pd.to_datetime(data['booked_from'], dayfirst=True)
+end_date = pd.to_datetime(data['booked_to'], dayfirst=True)
+```
+
+**"Always use `dayfirst=True` for DD-MM-YYYY format. Otherwise '06-08-2026' becomes August 6 instead of June 8!"**
+
+**Step 2: Check Date Clashes (Line 2265)**
+
+```python
+is_ok, clash_audit = check_date_clash(psid, start_date, end_date)
+```
+
+**"This checks if the person is already booked during these dates. No double-booking allowed."**
+
+**Step 3: Load Availability (Lines 2275-2290)**
+
+**"Here's where it gets interesting. We load availability for ONLY the date range:"**
+
+```python
+availability_in_range = availability_df[
+    (availability_df['psid'] == psid) &
+    (availability_df['date'] >= start_date) &
+    (availability_df['date'] <= end_date)
+]
+```
+
+**"Then we filter OUT holidays, weekends, and NAA days. Why? You can't book someone on days they're unavailable!"**
+
+**Step 4: Distributed Hours Calculation (Lines 2300-2325)**
+
+**"This is THE KEY BUSINESS LOGIC. Let me explain with an example:**
+
+**User wants to book:**
+
+- 10 days (June 1-10)
+- 5 hours total
+
+**But in those 10 days:**
+
+- 2 are weekends (skip)
+- 1 is holiday (skip)
+- 7 are working days
+
+**Calculation:**
+
+```
+daily_hours = 5 hours / 7 available days = 0.71 hours per day
+```
+
+**"So we spread 5 hours across 7 days. This is called DISTRIBUTED HOURS."**
+
+**Walk through the code:**
+
+```python
+# Count available days (excluding weekends/holidays)
+available_days = len(availability_in_range)
+
+# Calculate hours per day
+daily_distributed_hours = allocated_hours / available_days
+
+# Create per-date hour mapping
+per_date_hours = {}
+for each available day:
+    per_date_hours[date] = daily_distributed_hours
+```
+
+**Step 5: Format per_date_hours String (Lines 2330-2345)**
+
+**"We store this as a string: `'2026-06-01:0.71;2026-06-02:0.71;2026-06-03:0.71'`**
+
+**Why a string? Because bookings.csv is a CSV file, not a database. We can't store objects."**
+
+**Step 6: Create Booking Record (Lines 2350-2380)**
+
+**"Finally, we create a new row:"**
+
+```python
+new_booking = pd.DataFrame([{
+    'audit_number': ...,
+    'PSID': psid,
+    'BookedFrom': start_date.strftime('%d-%m-%Y'),
+    'BookedTo': end_date.strftime('%d-%m-%Y'),
+    'allocated_hours': total_hours,
+    'daily_distributed_hours': hours_per_day,
+    'per_date_hours': '2026-06-01:0.71;2026-06-02:0.71',
+    'book_dates_list': '2026-06-01;2026-06-02',
+    ...
+}])
+```
+
+**Step 7: Save to Managed Folder (Lines 2390-2400)**
+
+**"We append to bookings.csv and write back:"**
+
+```python
+bookings = pd.concat([existing_bookings, new_booking])
+write_csv_to_folder(bookings, BOOKINGS_FILE_PATH)
+```
+
+**"And we MUST clear the cache so next API call sees the new booking!"**
+
+**Question: "What happens if we forget to clear cache?"**
+_(Answer: New booking won't show up for 30 seconds!)_
+
+---
+
+### **Part 6: Calendar Colors - The Visualization Engine (Lines 3420-3825)**
+
+**"Now let's look at how we generate the colorful calendar. Function: `get_calendar_colors_for_employee()` around line 3420."**
+
+**"This function does ONE thing: For a given PSID and date range, return a color for each day showing availability."**
+
+**The Color Code:**
+
+- **Green**: 8h available
+- **Yellow-dark**: 7h available
+- **Yellow-medium**: 5h available
+- **Yellow-light**: 3h available
+- **Yellow-very-light**: Any remaining capacity (even 0.8h!)
+- **Light-blue**: Holiday/Weekend (0h)
+- **Brown**: NAA - Not Available (8h blocked)
+- **Grey**: Outside availability window
+
+**Walk through the logic:**
+
+**Step 1: Load Data (Lines 3430-3475)**
+
+```
+1. Load availability for this PSID
+2. Load bookings for this PSID
+3. Define date range (availability window + 30 days buffer)
+```
+
+**Step 2: Calculate Booked Hours by Date (Lines 3480-3620)**
+
+**"This is complex. We iterate through all bookings and parse the per_date_hours string:"**
+
+```python
+per_date_hours = "2026-06-08:7.2;2026-06-09:7.2"
+
+Parse this into:
+distributed_hours_by_date = {
+    '2026-06-08': 7.2,
+    '2026-06-09': 7.2
+}
+```
+
+**"If multiple bookings on same date, we SUM the hours:"**
+
+```python
+distributed_hours_by_date['2026-06-08'] =
+    existing_value + new_booking_value
+```
+
+**Step 3: Build Availability Maps (Lines 3645-3690)**
+
+**"We create quick lookup dictionaries:"**
+
+```python
+availability_map = {'2026-06-08': 8.0, '2026-06-09': 0.8, ...}
+holiday_map = {'2026-06-04': True, ...}
+weekend_map = {'2026-06-05': True, ...}
+naa_map = {'2026-10-01': True, ...}
+```
+
+**"This makes lookups O(1) instead of O(n). Performance optimization!"**
+
+**Step 4: THE CRITICAL BUG FIX (Lines 3713-3722)**
+
+**"Stop. This section has a bug fix that took us 3 days to find. Let me explain the problem:**
+
+**Original code:**
+
+```python
+available_hours = availability_map.get(date)
+booked_hours = distributed_hours_by_date.get(date)
+remaining = available_hours - booked_hours
+```
+
+**"Seems logical, right? But there's a gotcha. At midnight, Dataiku updates the availability file with NET values (after subtracting existing bookings)."**
+
+**Timeline:**
+
+- 10 AM: Person has 8h, we book 7.2h, shows 0.8h remaining ✓
+- Midnight: Dataiku sync updates availability to 0.8h (NET)
+- 8 AM next day: Code calculates 0.8h - 7.2h = -6.4h → Shows 0h! ✗
+
+**"This is DOUBLE SUBTRACTION. We're subtracting bookings from already-subtracted availability!"**
+
+**The Fix:**
+
+```python
+if booked_hours > 0 and 0 < available_hours < booked_hours:
+    # NET availability detected!
+    remaining_hours = available_hours  # Use directly
+else:
+    # GROSS availability
+    remaining_hours = available_hours - booked_hours
+```
+
+**"We detect when availability is NET (available < booked) and skip the subtraction. Problem solved!"**
+
+**Question: "How would YOU have debugged this?"**
+_(Good discussion: Add logs, compare before/after midnight, check if bookings changed, etc.)_
+
+**Step 5: Assign Colors (Lines 3725-3805)**
+
+**"Finally, we loop through each date and assign colors based on rules:"**
+
+```python
+Priority order:
+1. Brown if NAA (8h)
+2. Light-blue if weekend/holiday
+3. Light-blue if 0h remaining
+4. Color grades for remaining hours
+5. Grey if outside availability window
+```
+
+**"The function returns JSON:"**
+
+```json
+{
+  "availability_colors": {
+    "2026-06-08": {
+      "color": "yellow-very-light",
+      "available_hours": 8.0,
+      "booked_hours": 7.2,
+      "remaining_hours": 0.8
+    }
+  }
+}
+```
+
+**"The frontend uses this to render the calendar!"**
+
+---
+
+### **Part 7: Other Important APIs (Quick Tour)**
+
+**"Let me quickly show you other key endpoints:**
+
+**`GET /api/audits` (Line 1972)**
+
+- Returns list of audits user can see
+- Filters by Primary_Audit_Issue_Group (RBAC)
+- Bug we fixed: Column name was hardcoded as 'Audit_ID' but dataset had 'audit_issue_number'
+- Now it checks both dynamically!
+
+**`GET /api/auditors/<audit>` (Line 1279)**
+
+- Shows available resources for an audit
+- Calculates Met/Unmet/Partially Met status
+- Compares allocated_days vs required_days
+
+**`GET /api/check_auditor_availability` (Line 1620)**
+
+- Checks if resource has capacity for new booking
+- Returns available hours by date
+- Used before showing booking form
+
+**`GET /download_all_bookings` (Line 2192)**
+
+- Exports bookings to CSV
+- Bug we fixed: Dates were mixed YYYY-MM-DD and DD-MM-YYYY
+- Now we standardize to DD-MM-YYYY before export
+
+**`POST /api/clear_cache` (Line 3810)**
+
+- Force reload of all cached data
+- Use after updating Dataiku datasets
+- Clears both availability and bookings cache
+
+---
+
+### **Part 8: Common Bugs and Gotchas**
+
+**"Let me share some bugs we hit so you don't repeat them:**
+
+**Bug 1: Integer Truncation**
+
+```python
+# WRONG
+df['hours'] = df['hours'].astype(int)  # 0.8 becomes 0!
+
+# RIGHT
+df['hours'] = df['hours'].astype(float)  # Preserves 0.8
+```
+
+**Bug 2: Date Key Mismatch**
+
+```python
+# WRONG
+availability_map = df.set_index('date')  # Keys are date objects
+value = availability_map.get('2026-06-08')  # Lookup with string = FAIL
+
+# RIGHT
+df['date_str'] = df['date'].dt.strftime('%Y-%m-%d')
+availability_map = df.set_index('date_str')  # Keys are strings
+value = availability_map.get('2026-06-08')  # Works!
+```
+
+**Bug 3: Variable Unbound**
+
+```python
+# WRONG
+try:
+    allocated_days = calculate()
+except:
+    pass
+return allocated_days  # ERROR if exception!
+
+# RIGHT
+allocated_days = 0  # Initialize with default
+try:
+    allocated_days = calculate()
+except:
+    pass
+return allocated_days  # Always safe
+```
+
+**Bug 4: Modifying Cached Data**
+
+```python
+# WRONG
+bookings = load_bookings()
+bookings['new_col'] = 'value'  # Modifies cache!
+
+# RIGHT
+bookings = load_bookings().copy()  # Safe to modify
+bookings['new_col'] = 'value'
+```
+
+**Bug 5: Date Parsing**
+
+```python
+# WRONG
+date = pd.to_datetime('08-06-2026')  # Thinks month=08, day=06
+
+# RIGHT
+date = pd.to_datetime('08-06-2026', dayfirst=True)  # DD-MM-YYYY
+```
+
+---
+
+### **Part 9: Performance Considerations**
+
+**"Let's talk about why this app is fast:**
+
+**1. Module-Level Dataset Loading**
+
+- Datasets load once at startup, not per request
+- Saves 10-30 seconds per API call
+
+**2. 30-Second Cache**
+
+- Bookings cached for 30 seconds
+- Prevents reading 7000 rows from Dataiku on every click
+- Reduced load time from 60s to <1s
+
+**3. Dictionary Lookups**
+
+- Convert DataFrames to dicts for O(1) lookups
+- Example: `availability_map = df.set_index('date').to_dict()`
+
+**4. Copy-on-Return**
+
+- Always return `.copy()` from cache
+- Prevents accidental cache modification
+
+**Question: "What would happen if we removed caching?"**
+_(Answer: App becomes unusable - 30-60 second load times!)_
+
+---
+
+### **Part 10: Best Practices to Follow**
+
+**"As you modify this code, remember:**
+
+**✅ Data Types**
+
+- Use `.astype(float)` for hours, capacity, numeric values
+- Use `.astype(int)` only for IDs, counts
+
+**✅ Date Handling**
+
+- Always parse with `dayfirst=True`
+- Store as strings: `YYYY-MM-DD` format
+- Display as `DD-MM-YYYY` for users
+
+**✅ Caching**
+
+- Check cache freshness before loading
+- Clear cache after data modifications
+- Return `.copy()` to prevent corruption
+
+**✅ Error Handling**
+
+- Initialize variables with safe defaults
+- Use `errors='coerce'` in pd.to_datetime()
+- Add try-except around data operations
+
+**✅ Logging**
+
+- Add diagnostic logs for debugging
+- Use pattern: `[TAG] PSID {X}: field={value}`
+- Helps trace issues in production
+
+**✅ Testing**
+
+- Test fractional hours (0.8h, 0.5h)
+- Test edge cases (0h, over-allocation)
+- Test date boundaries (month-end, year-end)
+
+---
+
+### **Part 11: How to Debug Production Issues**
+
+**"When users report issues, follow this checklist:**
+
+**1. Check Logs**
+
+```
+Look for: [ERROR], [WARNING], [DEBUG] tags
+Find: Stack traces, variable values
+```
+
+**2. Clear Cache**
+
+```
+POST /api/clear_cache
+Wait 30 seconds
+Try again
+```
+
+**3. Verify Data Source**
+
+```
+Check Dataiku datasets:
+- Is PSID present?
+- Are dates in range?
+- Is data type correct?
+```
+
+**4. Add Diagnostic Logs**
+
+```python
+logging.info(f"[DEBUG] PSID {psid}: available={X}, booked={Y}")
+```
+
+**5. Test with Known Good Data**
+
+```
+Pick a PSID/date you KNOW works
+Compare with problematic one
+Find the difference
+```
+
+**6. Check Recent Changes**
+
+```
+Did availability file update?
+Did booking schema change?
+Did column names change?
+```
+
+---
+
+### **Part 12: Future Improvements**
+
+**"Some ideas for making this better:**
+
+**1. Move to Real Database**
+
+- Replace bookings.csv with PostgreSQL/SQLite
+- Add unique constraints
+- Enable transactions
+- Proper indexes for performance
+
+**2. Real-time Updates**
+
+- WebSocket for live calendar updates
+- No need to refresh page
+
+**3. Better Concurrency**
+
+- Lock mechanism for booking writes
+- Prevent race conditions
+
+**4. Audit Logging**
+
+- Track who changed what when
+- Compliance requirement
+
+**5. Automated Testing**
+
+- Unit tests for business logic
+- Integration tests for APIs
+- Prevent regression bugs
+
+---
+
+### **Session Close: Q&A**
+
+**"That's the complete walkthrough! Key takeaways:**
+
+**1. Caching is critical** - 30-second TTL makes app usable
+**2. Distributed hours** - Spread total hours across available days
+**3. Float precision** - Always use float for hours, never int
+**4. NET vs GROSS** - Watch for double-accounting after midnight sync
+**5. Date consistency** - Standardize format everywhere
+**6. Duplicate removal** - Auto-runs every 30 seconds
+**7. Performance** - Module-level loading + dict lookups = fast
+
+**Questions? Let's open the code and go through any parts again."**
+
+---
+
+### **Suggested Follow-up Activities**
+
+After the walkthrough, have new developers:
+
+1. **Add a simple API endpoint**
+   - Example: `GET /api/booking_count/<psid>`
+   - Tests their understanding of Flask + Pandas
+
+2. **Fix a synthetic bug**
+   - Change `.astype(float)` back to `.astype(int)`
+   - Have them debug and fix it
+
+3. **Add logging to a function**
+   - Pick a function without logs
+   - Add diagnostic logging
+   - Test with live data
+
+4. **Modify business logic**
+   - Change color threshold (3h → 2h)
+   - Update calendar colors accordingly
+
+5. **Review a real bug fix**
+   - Show git diff for NET vs GROSS fix
+   - Explain why each line changed
+
+---
+
 ## Version History
 
 ### Latest Fixes (Feb 2026)
